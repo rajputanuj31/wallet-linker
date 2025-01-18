@@ -26,7 +26,7 @@ const CHAIN_EXPLORERS: { [key: string]: string } = {
     '0xaa36a7': 'https://sepolia.etherscan.io',
 };
 
-export const connectEthereum = async (): Promise<WalletInfo> => {
+export const connectMetamask = async (): Promise<WalletInfo> => {
     try {
         if (!window.ethereum) {
             throw new WalletNotInstalledError();
@@ -56,7 +56,7 @@ export const connectEthereum = async (): Promise<WalletInfo> => {
     }
 };
 
-export const sendTransaction = async (recipientAddress: string, amount: string): Promise<string> => {
+export const sendMetamaskTransaction = async (recipientAddress: string, amount: string): Promise<string> => {
     try {
         if (!window.ethereum) {
             throw new WalletNotInstalledError();
@@ -88,7 +88,7 @@ export const sendTransaction = async (recipientAddress: string, amount: string):
     }
 };
 
-export const getExplorerUrl = (chainId: string, txHash: string): string => {
+export const getMetamaskExplorerUrl = (chainId: string, txHash: string): string => {
     const baseUrl = CHAIN_EXPLORERS[chainId] || 'https://etherscan.io';
     return `${baseUrl}/tx/${txHash}`;
 };

@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react';
-import { sendTransaction, getExplorerUrl } from '../lib/Ethereum';
+import { sendMetamaskTransaction, getMetamaskExplorerUrl } from '../lib/Metamask';
+import { getPhantomExplorerUrl, sendPhantomTransaction } from '../lib/Phantom';
 
-interface SendTransactionModalProps {
+
+interface SendTransactionModalProps {   
     isOpen: boolean;
     onClose: () => void;
     walletInfo: {
@@ -59,8 +61,12 @@ export default function SendTransactionModal({
             
             switch (walletInfo?.walletType) {
                 case 'metamask':
-                    hash = await sendTransaction(recipientAddress, amount);
-                    url = getExplorerUrl(walletInfo.chainId, hash);
+                    hash = await sendMetamaskTransaction(recipientAddress, amount);
+                    url = getMetamaskExplorerUrl(walletInfo.chainId, hash);
+                    break;
+                case 'phantom':
+                    hash = await sendPhantomTransaction(recipientAddress, amount);
+                    url = getPhantomExplorerUrl(walletInfo.chainId, hash);
                     break;
                 default:
                     throw new Error('Unknown wallet type');

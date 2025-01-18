@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import ConnectButton from "./components/ConnectButton";
-import { connectEthereum } from "./lib/Ethereum";
+import { connectMetamask } from "./lib/Metamask";
+import {connectPhantom} from "./lib/Phantom"
 import { WalletConnectionError, WalletNotInstalledError } from "./utils/Errors";
 import { useRouter } from 'next/navigation';
 
@@ -10,25 +11,35 @@ interface WalletInfo {
     balance: string;
     chainId: string;
     chainName: string;
-    walletType?: 'metamask';
+    walletType?: 'metamask' | 'phantom';
 }
 
 export default function Home() {
     const router = useRouter();
     const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isConnecting, setIsConnecting] = useState(false);
 
-    const connectMetaMask = async () => {
+
+    const connectWallet = async (
+        connect: () => Promise<WalletInfo>,
+        type: WalletInfo['walletType']
+    ) => {
         try {
             setError(null);
-            const info = await connectEthereum();
-            const walletInfoWithType = { ...info, walletType: 'metamask' as const };
+            setIsConnecting(true);
+            const info = await connect();
+            const walletInfoWithType = { ...info, walletType: type };
             setWalletInfo(walletInfoWithType);
-            router.push(`/accountInfo?type=metamask`);
+            router.push(`/accountInfo?type=${type}`);
         } catch (error) {
             handleError(error);
+            setIsConnecting(false);
         }
     };
+
+    const connectMetaMask = () => connectWallet(connectMetamask, 'metamask');
+    const connectPhantomWallet = () => connectWallet(connectPhantom, 'phantom');
 
     const handleError = (error: any) => {
         if (error instanceof WalletNotInstalledError || error instanceof WalletConnectionError) {
@@ -46,7 +57,8 @@ export default function Home() {
                     {error}
                 </div>
             )}
-            <ConnectButton connectMetaMask={connectMetaMask} />
+            <ConnectButton connectMetaMask={connectMetaMask} connectPhantom={connectPhantomWallet}
+            />
         </div>
     );
 }

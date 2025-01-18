@@ -9,7 +9,7 @@ interface WalletInfo {
     balance: string;
     chainId: string;
     chainName: string;
-    walletType: 'metamask'| "phantom" | "aptos";
+    walletType: 'metamask'| "phantom";
 }
 
 export default function AccountInfo() {
@@ -18,13 +18,31 @@ export default function AccountInfo() {
     const [showSendModal, setShowSendModal] = useState(false);
     const [txHash, setTxHash] = useState<string | null>(null);
     const [explorerUrl, setExplorerUrl] = useState<string | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
 
     useEffect(() => {
         const fetchWalletInfo = async () => {
             try {
-                const { connectEthereum } = await import('../lib/Ethereum');
-                const info = await connectEthereum();
-                setWalletInfo({ ...info, walletType: 'metamask' });
+                const searchParams = new URLSearchParams(window.location.search);
+                const walletType = searchParams.get('type');
+                
+                let info;
+                switch (walletType) {
+                    case 'metamask':
+                        const { connectMetamask } = await import('../lib/Metamask');
+                        info = await connectMetamask();
+                        setWalletInfo({ ...info, walletType: 'metamask' });
+                        break;
+                    case 'phantom':
+                        const { connectPhantom } = await import('../lib/Phantom');
+                        info = await connectPhantom();
+                        setWalletInfo({ ...info, walletType: 'phantom' });
+                        break;
+                    default:
+                        router.push('/');
+                        return;
+                }
             } catch (error) {
                 console.error('Failed to fetch wallet info:', error);
                 router.push('/');
@@ -39,49 +57,70 @@ export default function AccountInfo() {
         router.push('/');
     };
 
+    useEffect(() => {
+        const handleAccountsChanged = async () => {
+            await refreshWalletInfo();
+        };
+
+        // Set up listeners based on wallet type
+        if (walletInfo?.walletType === 'metamask' && window.ethereum) {
+            window.ethereum.on('accountsChanged', handleAccountsChanged);
+            window.ethereum.on('chainChanged', handleAccountsChanged);
+        } else if (walletInfo?.walletType === 'phantom' && window.solana) {
+            window.solana.on('accountChanged', handleAccountsChanged);
+        }
+
+        // Clean up listeners
+        return () => {
+            if (walletInfo?.walletType === 'metamask' && window.ethereum) {
+                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+                window.ethereum.removeListener('chainChanged', handleAccountsChanged);
+            } else if (walletInfo?.walletType === 'phantom' && window.solana) {
+                window.solana.removeListener('accountChanged', handleAccountsChanged);
+            }
+        };
+    }, [walletInfo?.walletType]);
+
+    const getCurrencySymbol = () => {
+        switch (walletInfo?.walletType) {
+            case 'metamask': return 'ETH';
+            case 'phantom': return 'SOL';
+            default: return '';
+        }
+    };
+    
     const refreshWalletInfo = async () => {
+        if (!walletInfo || isRefreshing) return;
+
         try {
-            const { connectEthereum } = await import('../lib/Ethereum');
-            const updatedInfo = await connectEthereum();
-            setWalletInfo({...updatedInfo, walletType: 'metamask'});
+            setIsRefreshing(true);
+            let newWalletInfo;
+            switch (walletInfo.walletType) {
+                case 'metamask':
+                    const { connectMetamask } = await import('../lib/Metamask');
+                    newWalletInfo = await connectMetamask();
+                    setWalletInfo({ ...newWalletInfo, walletType: 'metamask' });
+                    break;
+                case 'phantom':
+                    const { connectPhantom } = await import('../lib/Phantom');
+                    newWalletInfo = await connectPhantom();
+                    setWalletInfo({ ...newWalletInfo, walletType: 'phantom' });
+                    break;
+
+            }
         } catch (error) {
             console.error('Failed to refresh wallet info:', error);
+            router.push('/');
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
-    useEffect(() => {
-        const handleAccountsChanged = () => {
-            refreshWalletInfo();
-        };
-
-        if (window.ethereum) {
-            window.ethereum.on('accountsChanged', handleAccountsChanged);
-            window.ethereum.on('chainChanged', handleAccountsChanged);
-        }
-
-        return () => {
-            if (window.ethereum) {
-                window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-                window.ethereum.removeListener('chainChanged', handleAccountsChanged);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
-                refreshWalletInfo();
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('focus', refreshWalletInfo);
-
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            window.removeEventListener('focus', refreshWalletInfo);
-        };
-    }, []);
+    const handleTransactionSuccess = async (hash: string, url: string) => {
+        setTxHash(hash);
+        setExplorerUrl(url);
+        await refreshWalletInfo();
+    };
 
     if (!walletInfo) {
         return null;
@@ -112,7 +151,7 @@ export default function AccountInfo() {
                     <div className="bg-[#323244] p-4 rounded-lg hover:bg-[#3B3B54] transition-colors">
                         <span className="font-semibold text-[#C0C0E0] block mb-1">Balance</span>
                         <span className="text-lg text-[#4ADE80] font-medium">
-                            {walletInfo.balance} ETH
+                        {walletInfo.balance} {getCurrencySymbol()}
                         </span>
                     </div>
                     <div className="bg-[#323244] p-4 rounded-lg hover:bg-[#3B3B54] transition-colors">
@@ -127,7 +166,7 @@ export default function AccountInfo() {
                             onClick={() => setShowSendModal(true)}
                             className="px-8 py-3 bg-[#02f994] text-black font-semibold rounded-lg shadow-md hover:scale-105 transform transition-transform flex items-center gap-2"
                         >
-                            Send ETH
+                            Send {getCurrencySymbol()}
                         </button>
                         {txHash && (
                             <div className="text-center">
@@ -154,7 +193,7 @@ export default function AccountInfo() {
                 isOpen={showSendModal}
                 onClose={() => setShowSendModal(false)}
                 walletInfo={walletInfo}
-                onSuccess={refreshWalletInfo}
+                onSuccess={handleTransactionSuccess}
             />
         </div>
     );
