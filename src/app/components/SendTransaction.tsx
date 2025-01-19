@@ -1,49 +1,47 @@
 'use client'
 
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { sendMetamaskTransaction, getMetamaskExplorerUrl } from '../lib/Metamask';
-import { getPhantomExplorerUrl, sendPhantomTransaction } from '../lib/Phantom';
+import { sendPhantomTransaction } from '../lib/Phantom';
 import { sendPetraTransaction, getPetraExplorerUrl } from '../lib/Petra';
 import { sendLeapTransaction, getLeapExplorerUrl } from '../lib/Leap';
+import { 
+    setTransactionInfo, 
+    setIsTransacting, 
+    setTransactionError 
+} from '../store/features/walletSlice';
+import type { RootState } from '../store/store';
 
-
-interface SendTransactionModalProps {   
+interface SendTransactionModalProps {
     isOpen: boolean;
     onClose: () => void;
-    walletInfo: {
-        walletType: 'metamask' | 'phantom' | 'petra' | 'leap';
-        chainId: string;
-    };
-    onSuccess: (hash: string, explorerUrl: string) => Promise<void>;
+    onSuccess: (hash: string, url: string) => Promise<void>;
 }
 
 export default function SendTransactionModal({ 
     isOpen, 
-    onClose, 
-    walletInfo,
+    onClose,
     onSuccess 
 }: SendTransactionModalProps) {
+    const dispatch = useDispatch();
+    const walletInfo = useSelector((state: RootState) => state.wallet);
     const [recipientAddress, setRecipientAddress] = useState('');
     const [amount, setAmount] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [txHash, setTxHash] = useState<string | null>(null);
-    const [explorerUrl, setExplorerUrl] = useState<string | null>(null);
 
     const getCurrencySymbol = () => {
         switch (walletInfo?.walletType) {
             case 'metamask': return 'ETH';
             case 'phantom': return 'SOL';
             case 'petra': return 'APT';
+            case 'leap': return 'ATOM';
             default: return '';
         }
     };
 
     const handleSend = async () => {
-        setError(null);
-        setTxHash(null);
-        setExplorerUrl(null);
-        setIsLoading(true);
+        dispatch(setTransactionError(null));
+        dispatch(setIsTransacting(true));
 
         try {
             if (!recipientAddress || !amount) {
@@ -68,34 +66,33 @@ export default function SendTransactionModal({
                     break;
                 case 'phantom':
                     hash = await sendPhantomTransaction(recipientAddress, amount);
-                    url = getPhantomExplorerUrl(walletInfo.chainId, hash);
+                    url = `https://explorer.solana.com/tx/${hash}?cluster=${walletInfo.chainId}`;
                     break;
                 case 'petra':
                     hash = await sendPetraTransaction(recipientAddress, amount);
                     url = getPetraExplorerUrl(walletInfo.chainId, hash);
                     break;
                 case 'leap':
-                    hash = await sendLeapTransaction(recipientAddress, amount);
+                    hash = await sendLeapTransaction(recipientAddress, amount, walletInfo.chainId);
                     url = getLeapExplorerUrl(walletInfo.chainId, hash);
                     break;
                 default:
                     throw new Error('Unknown wallet type');
             }
 
-            setTxHash(hash);
-            setExplorerUrl(url);
+            dispatch(setTransactionInfo({ txHash: hash, explorerUrl: url }));
             onClose();
             await onSuccess(hash, url);
         } catch (err: any) {
             if (err.code === 4001) {
-                setError('Transaction rejected by user');
+                dispatch(setTransactionError('Transaction rejected by user'));
             } else if (err.code === -32603) {
-                setError('Insufficient funds for transaction');
+                dispatch(setTransactionError('Insufficient funds for transaction'));
             } else {
-                setError(err instanceof Error ? err.message : 'Transaction failed');
+                dispatch(setTransactionError(err instanceof Error ? err.message : 'Transaction failed'));
             }
         } finally {
-            setIsLoading(false);
+            dispatch(setIsTransacting(false));
         }
     };
 
@@ -105,9 +102,9 @@ export default function SendTransactionModal({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
             <div className="bg-[#2A2A3C] rounded-xl p-6 max-w-md w-full">
                 <h2 className="text-xl font-bold text-[#E0E0F6] mb-4">Send {getCurrencySymbol()}</h2>
-                {error && (
+                {walletInfo.transactionError && (
                     <div className="mb-4 p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded text-red-500">
-                        {error}
+                        {walletInfo.transactionError}
                     </div>
                 )}
                 <div className="space-y-4">
@@ -137,16 +134,16 @@ export default function SendTransactionModal({
                         <button 
                             onClick={onClose}
                             className="flex-1 px-4 py-2 bg-[#3A3A4D] text-white rounded hover:bg-[#4A4A5D]"
-                            disabled={isLoading}
+                            disabled={walletInfo.isTransacting}
                         >
                             Cancel
                         </button>
                         <button 
                             onClick={handleSend}
-                            disabled={isLoading}
+                            disabled={walletInfo.isTransacting}
                             className="flex-1 px-4 py-2 bg-[#02f994] text-black font-semibold rounded hover:bg-[#00e085] disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? 'Sending...' : 'Send'}
+                            {walletInfo.isTransacting ? 'Sending...' : 'Send'}
                         </button>
                     </div>
                 </div>

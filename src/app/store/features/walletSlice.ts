@@ -5,7 +5,7 @@ interface WalletState {
   balance: string;
   chainId: string;
   chainName: string;
-  walletType?: 'metamask' | 'phantom' | 'aptos' | 'leap';
+  walletType?: 'metamask' | 'phantom' | 'petra' | 'leap';
   isConnecting: boolean;
   error: string | null;
   txHash: string | null;
