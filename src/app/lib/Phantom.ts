@@ -32,7 +32,7 @@ const CHAIN_NAMES: { [key: string]: string } = {
 const CHAIN_EXPLORERS: { [key: string]: string } = {
     'mainnet-beta': 'https://explorer.solana.com',
     'testnet': 'https://explorer.solana.com/?cluster=testnet',
-    'devnet': 'https://explorer.solana.com/?cluster=devnet',
+    'devnet': 'https://explorer.solana.com',
 };
 
 export const connectPhantom = async (): Promise<WalletInfo> => {
@@ -117,6 +117,6 @@ export const sendPhantomTransaction = async (recipientAddress: string, amount: s
 };
 
 export const getPhantomExplorerUrl = (chainId: string, txHash: string): string => {
-    const baseUrl = CHAIN_EXPLORERS[chainId] || CHAIN_EXPLORERS['mainnet-beta'];
+    const baseUrl = CHAIN_EXPLORERS[chainId] || CHAIN_EXPLORERS['devnet'];
     return `${baseUrl}/tx/${txHash}`;
 };

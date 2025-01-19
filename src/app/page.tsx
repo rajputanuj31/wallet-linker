@@ -1,54 +1,47 @@
-'use client';
-import { useState } from 'react';
+'use client'
+import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
 import ConnectButton from "./components/ConnectButton";
 import { connectMetamask } from "./lib/Metamask";
-import {connectPhantom} from "./lib/Phantom"
-import { connectPetra } from "./lib/Petra";
-import { connectLeap } from "./lib/Leap";
+import { connectPhantom } from "./lib/Phantom";
 import { WalletConnectionError, WalletNotInstalledError } from "./utils/Errors";
-import { useRouter } from 'next/navigation';
-
-interface WalletInfo {
-    address: string;
-    balance: string;
-    chainId: string;
-    chainName: string;
-    walletType?: 'metamask' | 'phantom' | 'petra' | 'leap';
-}
+import { connectPetra} from "./lib/Petra";
+import { connectLeap } from "./lib/Leap";
+import { setWalletInfo, setIsConnecting, setError } from './store/features/walletSlice';
+import type { RootState } from './store/store';
 
 export default function Home() {
     const router = useRouter();
-    const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [isConnecting, setIsConnecting] = useState(false);
-
+    const dispatch = useDispatch();
+    const { error, isConnecting } = useSelector((state: RootState) => state.wallet);
 
     const connectWallet = async (
-        connect: () => Promise<WalletInfo>,
-        type: WalletInfo['walletType']
+        connect: () => Promise<any>,
+        type: 'metamask' | 'phantom' | 'petra' | 'leap'
     ) => {
         try {
-            setError(null);
-            setIsConnecting(true);
+            dispatch(setError(null));
+            dispatch(setIsConnecting(true));
             const info = await connect();
-            const walletInfoWithType = { ...info, walletType: type };
-            setWalletInfo(walletInfoWithType);
+            dispatch(setWalletInfo({ ...info, walletType: type }));
             router.push(`/accountInfo?type=${type}`);
         } catch (error) {
             handleError(error);
-            setIsConnecting(false);
+        } finally {
+            dispatch(setIsConnecting(false));
         }
     };
 
-    const connectMetaMaskWallet = () => connectWallet(connectMetamask, 'metamask');
+    const connectMetaMask = () => connectWallet(connectMetamask, 'metamask');
     const connectPhantomWallet = () => connectWallet(connectPhantom, 'phantom');
     const connectPetraWallet = () => connectWallet(connectPetra, 'petra');
     const connectLeapWallet = () => connectWallet(connectLeap, 'leap');
+
     const handleError = (error: any) => {
         if (error instanceof WalletNotInstalledError || error instanceof WalletConnectionError) {
-            setError(error.message);
+            dispatch(setError(error.message));
         } else {
-            setError('An unexpected error occurred');
+            dispatch(setError('An unexpected error occurred'));
         }
     };
 
@@ -61,7 +54,7 @@ export default function Home() {
                 </div>
             )}
             <ConnectButton 
-            connectMetaMask={connectMetaMaskWallet} 
+            connectMetaMask={connectMetaMask} 
             connectPhantom={connectPhantomWallet} 
             connectPetra={connectPetraWallet}
             connectLeap={connectLeapWallet}
