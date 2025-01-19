@@ -9,7 +9,7 @@ interface WalletInfo {
     balance: string;
     chainId: string;
     chainName: string;
-    walletType: 'metamask'| "phantom";
+    walletType: 'metamask'| "phantom" | "petra";
 }
 
 export default function AccountInfo() {
@@ -39,6 +39,11 @@ export default function AccountInfo() {
                         info = await connectPhantom();
                         setWalletInfo({ ...info, walletType: 'phantom' });
                         break;
+                    case 'petra':
+                        const { connectPetra } = await import('../lib/Petra');
+                        info = await connectPetra();
+                        setWalletInfo({ ...info, walletType: 'petra' });
+                        break;
                     default:
                         router.push('/');
                         return;
@@ -62,21 +67,28 @@ export default function AccountInfo() {
             await refreshWalletInfo();
         };
 
-        // Set up listeners based on wallet type
         if (walletInfo?.walletType === 'metamask' && window.ethereum) {
             window.ethereum.on('accountsChanged', handleAccountsChanged);
             window.ethereum.on('chainChanged', handleAccountsChanged);
         } else if (walletInfo?.walletType === 'phantom' && window.solana) {
             window.solana.on('accountChanged', handleAccountsChanged);
+        }else if (walletInfo?.walletType === 'petra') {
+            const accountUnsubscribe = window.aptos?.onAccountChange(handleAccountsChanged);
+            const networkUnsubscribe = window.aptos?.onNetworkChange(handleAccountsChanged);
+            return () => {
+                accountUnsubscribe?.();
+                networkUnsubscribe?.();
+            };
         }
 
-        // Clean up listeners
         return () => {
             if (walletInfo?.walletType === 'metamask' && window.ethereum) {
                 window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
                 window.ethereum.removeListener('chainChanged', handleAccountsChanged);
             } else if (walletInfo?.walletType === 'phantom' && window.solana) {
                 window.solana.removeListener('accountChanged', handleAccountsChanged);
+            } else if (walletInfo?.walletType === 'petra' && window.aptos) {
+                window.aptos.removeListener('accountChanged', handleAccountsChanged);
             }
         };
     }, [walletInfo?.walletType]);
@@ -85,6 +97,7 @@ export default function AccountInfo() {
         switch (walletInfo?.walletType) {
             case 'metamask': return 'ETH';
             case 'phantom': return 'SOL';
+            case 'petra': return 'APT';
             default: return '';
         }
     };
@@ -106,7 +119,11 @@ export default function AccountInfo() {
                     newWalletInfo = await connectPhantom();
                     setWalletInfo({ ...newWalletInfo, walletType: 'phantom' });
                     break;
-
+                case 'petra':
+                    const { connectPetra } = await import('../lib/Petra');
+                    newWalletInfo = await connectPetra();
+                    setWalletInfo({ ...newWalletInfo, walletType: 'petra' });
+                    break;
             }
         } catch (error) {
             console.error('Failed to refresh wallet info:', error);

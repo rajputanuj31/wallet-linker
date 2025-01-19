@@ -5,11 +5,11 @@ import React, { useState } from 'react';
 interface ConnectButtonProps {
     connectMetaMask: () => Promise<void>;
     connectPhantom: () => Promise<void>;
-    connectAptos: () => Promise<void>;
+    connectPetra: () => Promise<void>;
     connectCosmos: () => Promise<void>;
 }
 
-const ConnectButton: React.FC<ConnectButtonProps> = ({ connectMetaMask, connectPhantom, connectAptos, connectCosmos }) => {
+const ConnectButton: React.FC<ConnectButtonProps> = ({ connectMetaMask, connectPhantom, connectPetra, connectCosmos }) => {
     const [showModal, setShowModal] = useState(false);
 
     const walletOptions = [
@@ -29,7 +29,7 @@ const ConnectButton: React.FC<ConnectButtonProps> = ({ connectMetaMask, connectP
             id: 'aptos',
             name: 'Petra',
             color: 'bg-[#02f994]',
-            connect: connectAptos,
+            connect: connectPetra,
         },
         {
             id: 'cosmos',
