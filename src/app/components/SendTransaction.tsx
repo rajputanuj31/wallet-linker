@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { sendMetamaskTransaction, getMetamaskExplorerUrl } from '../lib/Metamask';
 import { getPhantomExplorerUrl, sendPhantomTransaction } from '../lib/Phantom';
 import { sendPetraTransaction, getPetraExplorerUrl } from '../lib/Petra';
+import { sendLeapTransaction, getLeapExplorerUrl } from '../lib/Leap';
 
 
 interface SendTransactionModalProps {   
     isOpen: boolean;
     onClose: () => void;
     walletInfo: {
-        walletType: 'metamask' | 'phantom' | 'petra';
+        walletType: 'metamask' | 'phantom' | 'petra' | 'leap';
         chainId: string;
     };
     onSuccess: (hash: string, explorerUrl: string) => Promise<void>;
@@ -72,6 +73,10 @@ export default function SendTransactionModal({
                 case 'petra':
                     hash = await sendPetraTransaction(recipientAddress, amount);
                     url = getPetraExplorerUrl(walletInfo.chainId, hash);
+                    break;
+                case 'leap':
+                    hash = await sendLeapTransaction(recipientAddress, amount);
+                    url = getLeapExplorerUrl(walletInfo.chainId, hash);
                     break;
                 default:
                     throw new Error('Unknown wallet type');

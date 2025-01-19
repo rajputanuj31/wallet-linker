@@ -9,7 +9,7 @@ interface WalletInfo {
     balance: string;
     chainId: string;
     chainName: string;
-    walletType: 'metamask'| "phantom" | "petra";
+    walletType: 'metamask'| "phantom" | "petra" | "leap";
 }
 
 export default function AccountInfo() {
@@ -43,6 +43,11 @@ export default function AccountInfo() {
                         const { connectPetra } = await import('../lib/Petra');
                         info = await connectPetra();
                         setWalletInfo({ ...info, walletType: 'petra' });
+                        break;
+                    case 'leap':
+                        const { connectLeap } = await import('../lib/Leap');
+                        info = await connectLeap();
+                        setWalletInfo({ ...info, walletType: 'leap' });
                         break;
                     default:
                         router.push('/');
@@ -98,6 +103,7 @@ export default function AccountInfo() {
             case 'metamask': return 'ETH';
             case 'phantom': return 'SOL';
             case 'petra': return 'APT';
+            case 'leap': return 'ATOM';
             default: return '';
         }
     };
@@ -123,6 +129,11 @@ export default function AccountInfo() {
                     const { connectPetra } = await import('../lib/Petra');
                     newWalletInfo = await connectPetra();
                     setWalletInfo({ ...newWalletInfo, walletType: 'petra' });
+                    break;
+                case 'leap':
+                    const { connectLeap } = await import('../lib/Leap');
+                    newWalletInfo = await connectLeap();
+                    setWalletInfo({ ...newWalletInfo, walletType: 'leap' });
                     break;
             }
         } catch (error) {

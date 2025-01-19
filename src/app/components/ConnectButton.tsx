@@ -6,10 +6,10 @@ interface ConnectButtonProps {
     connectMetaMask: () => Promise<void>;
     connectPhantom: () => Promise<void>;
     connectPetra: () => Promise<void>;
-    connectCosmos: () => Promise<void>;
+    connectLeap: () => Promise<void>;
 }
 
-const ConnectButton: React.FC<ConnectButtonProps> = ({ connectMetaMask, connectPhantom, connectPetra, connectCosmos }) => {
+const ConnectButton: React.FC<ConnectButtonProps> = ({ connectMetaMask, connectPhantom, connectPetra, connectLeap }) => {
     const [showModal, setShowModal] = useState(false);
 
     const walletOptions = [
@@ -33,9 +33,9 @@ const ConnectButton: React.FC<ConnectButtonProps> = ({ connectMetaMask, connectP
         },
         {
             id: 'cosmos',
-            name: 'Cosmos',
+            name: 'Leap',
             color: 'bg-[#02f994]',
-            connect: connectCosmos,
+            connect: connectLeap,
         },
     ];
 

@@ -4,6 +4,7 @@ import ConnectButton from "./components/ConnectButton";
 import { connectMetamask } from "./lib/Metamask";
 import {connectPhantom} from "./lib/Phantom"
 import { connectPetra } from "./lib/Petra";
+import { connectLeap } from "./lib/Leap";
 import { WalletConnectionError, WalletNotInstalledError } from "./utils/Errors";
 import { useRouter } from 'next/navigation';
 
@@ -12,7 +13,7 @@ interface WalletInfo {
     balance: string;
     chainId: string;
     chainName: string;
-    walletType?: 'metamask' | 'phantom' | 'petra';
+    walletType?: 'metamask' | 'phantom' | 'petra' | 'leap';
 }
 
 export default function Home() {
@@ -42,7 +43,7 @@ export default function Home() {
     const connectMetaMaskWallet = () => connectWallet(connectMetamask, 'metamask');
     const connectPhantomWallet = () => connectWallet(connectPhantom, 'phantom');
     const connectPetraWallet = () => connectWallet(connectPetra, 'petra');
-
+    const connectLeapWallet = () => connectWallet(connectLeap, 'leap');
     const handleError = (error: any) => {
         if (error instanceof WalletNotInstalledError || error instanceof WalletConnectionError) {
             setError(error.message);
@@ -63,6 +64,7 @@ export default function Home() {
             connectMetaMask={connectMetaMaskWallet} 
             connectPhantom={connectPhantomWallet} 
             connectPetra={connectPetraWallet}
+            connectLeap={connectLeapWallet}
             />
         </div>
     );
