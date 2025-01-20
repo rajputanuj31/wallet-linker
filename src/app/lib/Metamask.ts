@@ -8,6 +8,21 @@ interface WalletInfo {
     chainName: string;
 }
 
+interface EthereumProvider {
+    isMetaMask?: boolean;
+    isRabby?: boolean;
+}
+
+interface EIP6963ProviderDetail {
+    info: {
+        uuid: string;
+        name: string;
+        icon: string;
+        rdns: string;
+    };
+    provider: EthereumProvider;
+}
+
 declare global {
     interface Window {
         ethereum: any;
@@ -29,16 +44,32 @@ const CHAIN_EXPLORERS: { [key: string]: string } = {
 export const connectMetamask = async (): Promise<WalletInfo> => {
     try {
         if (!window.ethereum) {
-            throw new WalletNotInstalledError();
+            throw new WalletNotInstalledError('MetaMask wallet is not installed.');
         }
 
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = await provider.getSigner();
+        let provider;
+
+        // Check for EIP-6963 providers
+        if (window.ethereum.eip6963ProviderDetails) {
+            const metamaskProvider = window.ethereum.eip6963ProviderDetails.find(
+                (detail: EIP6963ProviderDetail) => detail.info.rdns === 'io.metamask'
+            );
+            provider = metamaskProvider?.provider;
+        } else if (window.ethereum.isMetaMask) {
+            provider = window.ethereum;
+        }
+
+        if (!provider) {
+            throw new WalletNotInstalledError('MetaMask wallet is not installed.');
+        }
+
+        const ethersProvider = new ethers.BrowserProvider(provider);
+        await ethersProvider.send("eth_requestAccounts", []);
+        const signer = await ethersProvider.getSigner();
         
         const address = await signer.getAddress();
-        const balance = ethers.formatEther(await provider.getBalance(address));
-        const chainId = (await provider.getNetwork()).chainId.toString(16);
+        const balance = ethers.formatEther(await ethersProvider.getBalance(address));
+        const chainId = (await ethersProvider.getNetwork()).chainId.toString(16);
         const chainIdHex = `0x${chainId}`;
         const chainName = CHAIN_NAMES[chainIdHex] || 'Unknown Network';
 
@@ -56,10 +87,11 @@ export const connectMetamask = async (): Promise<WalletInfo> => {
     }
 };
 
+
 export const sendMetamaskTransaction = async (recipientAddress: string, amount: string): Promise<string> => {
     try {
         if (!window.ethereum) {
-            throw new WalletNotInstalledError();
+            throw new WalletNotInstalledError('Metamask wallet is not installed.');
         }
 
         const provider = new ethers.BrowserProvider(window.ethereum);
@@ -73,7 +105,6 @@ export const sendMetamaskTransaction = async (recipientAddress: string, amount: 
             value: amountInWei,
         };
 
-        // Send transaction
         const transaction = await signer.sendTransaction(tx);
         
         // Wait for transaction to be mined
