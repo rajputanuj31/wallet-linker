@@ -57,46 +57,69 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center">
-            <div className="flex flex-col items-center space-y-8">
-                {isConnecting ? (
-                    <div className="text-white flex items-center gap-3 bg-white/5 px-6 py-3 rounded-lg">
-                        <div className="w-5 h-5 border-2 border-[#02f994] border-t-transparent rounded-full animate-spin" />
-                        Connecting...
-                    </div>
-                ) : (
-                    <ConnectButton
-                        connectMetaMask={connectMetaMask}
-                        connectPhantom={connectPhantomWallet}
-                        connectPetra={connectPetraWallet}
-                        connectLeap={connectLeapWallet}
-                        connectRabby={connectRabbyWallet}
-                    />
-                )}
-            </div>
-            {signerStatus.isInitializing ? (
-                <>Loading...</>
-            ) : user ? (
-                <div className="flex flex-col text-center items-center gap-2 p-2">
-                    <p className="text-xl font-bold">Success!</p>
-                    <p className="text-white">Logged in as {user.email ?? "anon"}.</p>
-                    <p className="text-white">Address: {user.address}.</p>
+        <main className="min-h-screen pt-16 bg-gradient-to-br from-[#1E1E2F] to-[#2D2D3A]">
+            <div className="relative overflow-hidden">
+                <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 sm:pt-24 sm:pb-20">
+                    {error && (
+                        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 
+                            bg-red-500/10 text-red-500 px-4 py-2 rounded-lg border border-red-500/20">
+                            {error}
+                        </div>
+                    )}
 
-                    <button
-                        className="px-6 py-2 bg-red-500 text-white w-48 hover:bg-red-600 transition-colors mt-6"
-                        onClick={() => logout()}
-                    >
-                        Log out
-                    </button>
+                    <div className="text-center space-y-12">
+                        <h1 className="text-5xl sm:text-6xl font-bold bg-clip-text text-transparent 
+                            bg-gradient-to-r from-[#02f994] to-[#00e085] tracking-tight">
+                            Multi-Chain Wallet Hub
+                        </h1>
+
+                        <p className="max-w-2xl mx-auto text-xl text-gray-300/80">
+                            Connect and manage your crypto wallets across multiple blockchains.
+                            Secure, seamless, and simple.
+                        </p>
+
+                        {isConnecting ? (
+                            <div className="text-white flex items-center justify-center mx-auto w-48 gap-3 bg-white/5 px-6 py-3 rounded-lg">
+                                <div className="w-5 h-5 border-2 border-[#02f994] border-t-transparent rounded-full animate-spin" />
+                                Connecting...
+                            </div>
+                        ) : (
+                            <ConnectButton
+                                connectMetaMask={connectMetaMask}
+                                connectPhantom={connectPhantomWallet}
+                                connectPetra={connectPetraWallet}
+                                connectLeap={connectLeapWallet}
+                                connectRabby={connectRabbyWallet}
+                            />
+                        )}
+
+                        {signerStatus.isInitializing ? (
+                            <>Loading...</>
+                        ) : user ? (
+                            <div className="flex flex-col text-center items-center gap-2 p-2">
+                                <p className="text-xl font-bold">Success!</p>
+                                <p className="text-white">Logged in as {user.email ?? "anon"}.</p>
+                                <p className="text-white">Address: {user.address}.</p>
+
+                                <button
+                                    className="px-6 py-2 bg-red-500 text-white w-48 hover:bg-red-600 transition-colors mt-6"
+                                    onClick={() => logout()}
+                                >
+                                    Log out
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                className="px-6 py-2 bg-[#02f994] text-black hover:bg-[#00e085] transition-colors"
+                                onClick={openAuthModal}
+                            >
+                                Create a Smart Wallet
+                            </button>
+                        )}
+                    </div>
                 </div>
-            ) : (
-                <button
-                    className="px-6 py-2 bg-[#02f994] text-black   hover:bg-[#00e085] transition-colors"
-                    onClick={openAuthModal}
-                >
-                    Create a Smart Wallet
-                </button>
-            )}
-        </div>
+            </div>
+        </main>
     );
 }

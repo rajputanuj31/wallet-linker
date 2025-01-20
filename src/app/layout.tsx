@@ -6,6 +6,7 @@ import { cookieToInitialState } from "@account-kit/core";
 import { Providers } from "./providers";
 import { config } from "./lib/config";
 import { headers } from "next/headers";
+import Navbar from "./components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default async function RootLayout({
       >
          <Providers initialState={initialState}>
           <ReduxProvider>
+            <Navbar />
             {children}
           </ReduxProvider>
         </Providers>

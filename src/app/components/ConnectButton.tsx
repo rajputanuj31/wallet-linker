@@ -74,7 +74,7 @@ const ConnectButton: React.FC<ConnectButtonProps> = ({
         <>
             <button
                 onClick={() => setShowModal(true)}
-                className="px-12 py-2 mb-4 bg-[#fc6977] text-black font-medium shadow-lg hover:shadow-2xl active:scale-[0.98] transition-all duration-200"
+                className="px-12 py-2 mb-4 mr-6 bg-[#fc6977] text-black font-medium shadow-lg hover:shadow-2xl active:scale-[0.98] transition-all duration-200"
             >
                 Connect Wallet
             </button>
