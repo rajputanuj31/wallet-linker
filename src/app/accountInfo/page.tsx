@@ -55,6 +55,11 @@ export default function AccountInfo() {
                         info = await connectLeap();
                         dispatch(setWalletInfo({ ...info, walletType: 'leap' }));
                         break;
+                    case 'rabby':
+                        const { connectRabby } = await import('../lib/Rabby');
+                        info = await connectRabby();
+                        dispatch(setWalletInfo({ ...info, walletType: 'rabby' }));
+                        break;
                     default:
                         router.push('/');
                         return;

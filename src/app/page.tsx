@@ -7,6 +7,7 @@ import { connectPhantom } from "./lib/Phantom";
 import { WalletConnectionError, WalletNotInstalledError } from "./utils/Errors";
 import { connectPetra} from "./lib/Petra";
 import { connectLeap } from "./lib/Leap";
+import { connectRabby } from "./lib/Rabby";
 import { setWalletInfo, setIsConnecting, setError } from './store/features/walletSlice';
 import type { RootState } from './store/store';
 
@@ -17,7 +18,7 @@ export default function Home() {
 
     const connectWallet = async (
         connect: () => Promise<any>,
-        type: 'metamask' | 'phantom' | 'petra' | 'leap'
+        type: 'metamask' | 'phantom' | 'petra' | 'leap' | 'rabby'
     ) => {
         try {
             dispatch(setError(null));
@@ -36,7 +37,7 @@ export default function Home() {
     const connectPhantomWallet = () => connectWallet(connectPhantom, 'phantom');
     const connectPetraWallet = () => connectWallet(connectPetra, 'petra');
     const connectLeapWallet = () => connectWallet(connectLeap, 'leap');
-
+    const connectRabbyWallet = () => connectWallet(connectRabby, 'rabby');
     const handleError = (error: any) => {
         if (error instanceof WalletNotInstalledError || error instanceof WalletConnectionError) {
             dispatch(setError(error.message));
@@ -46,19 +47,23 @@ export default function Home() {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 to-black p-4">
-            {error && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 
-                    bg-red-500/10 text-red-500 px-4 py-2 rounded-lg border border-red-500/20">
-                    {error}
-                </div>
-            )}
-            <ConnectButton 
-            connectMetaMask={connectMetaMask} 
-            connectPhantom={connectPhantomWallet} 
-            connectPetra={connectPetraWallet}
-            connectLeap={connectLeapWallet}
-            />
+        <div className="min-h-screen flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center space-y-8">
+                {isConnecting ? (
+                    <div className="text-white flex items-center gap-3 bg-white/5 px-6 py-3 rounded-lg">
+                        <div className="w-5 h-5 border-2 border-[#02f994] border-t-transparent rounded-full animate-spin" />
+                        Connecting...
+                    </div>
+                ) : (
+                    <ConnectButton 
+                        connectMetaMask={connectMetaMask} 
+                        connectPhantom={connectPhantomWallet}
+                        connectPetra={connectPetraWallet}    
+                        connectLeap={connectLeapWallet}
+                        connectRabby={connectRabbyWallet}
+                    />
+                )}
+            </div>
         </div>
     );
 }
