@@ -61,7 +61,7 @@ export const connectRabby = async (): Promise<WalletInfo> => {
         const signer = await ethersProvider.getSigner();
         const address = await signer.getAddress();
         const balance = ethers.formatEther(await ethersProvider.getBalance(address));
-        const chainId = (await ethersProvider.getNetwork()).chainId.toString(16);
+        const chainId = (await ethersProvider.getNetwork()).chainId.toString(16);        
         const chainIdHex = `0x${chainId}`;
         const chainName = CHAIN_NAMES[chainIdHex] || 'Unknown Network';
 

@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ReduxProvider } from "./store/provider";
+import { cookieToInitialState } from "@account-kit/core";
+import { Providers } from "./providers";
+import { config } from "./lib/config";
+import { headers } from "next/headers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,19 +22,28 @@ export const metadata: Metadata = {
   description: "Connect and manage your crypto wallets across multiple blockchains",
 };
 
-export default function RootLayout({
+const getInitialState = async () => {
+  return cookieToInitialState(
+    config,
+    (await headers()).get("cookie") ?? undefined
+  );
+};
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialState = await getInitialState();
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ReduxProvider>
-          {children}
-        </ReduxProvider>
+         <Providers initialState={initialState}>
+          <ReduxProvider>
+            {children}
+          </ReduxProvider>
+        </Providers>
       </body>
     </html>
   );
