@@ -41,7 +41,9 @@ export default function SmartWallet() {
             if (client && user?.address) {
                 try {
                     const bal = await client.getBalance({ address: user.address });
-                    setBalance(bal.toString());
+                    // Convert wei to ETH by dividing by 10^18
+                    const balanceInEth = Number(bal) / Math.pow(10, 18);
+                    setBalance(balanceInEth.toFixed(4)); // Show 4 decimal places
                 } catch (error) {
                     console.error('Error fetching balance:', error);
                     setBalance('Error loading balance');
@@ -100,7 +102,7 @@ export default function SmartWallet() {
                     <div className="bg-[#323244] p-4 rounded-lg hover:bg-[#3B3B54] transition-colors">
                         <span className="font-semibold text-[#C0C0E0] block mb-1">Balance</span>
                         <span className="text-[#F0F0FF]">
-                            .{balance} ETH
+                            {balance} ETH
                         </span>
                     </div>
 

@@ -27,11 +27,11 @@ export default function Home() {
     const signerStatus = useSignerStatus();
     const { logout } = useLogout();
 
-    // useEffect(() => {
-    //     if (user?.email && !signerStatus.isInitializing) {
-    //         router.replace('/smartWallet');
-    //     }
-    // }, [user?.email, signerStatus.isInitializing, router]);
+    useEffect(() => {
+        if (user?.email && !signerStatus.isInitializing) {
+            router.replace('/smartWallet');
+        }
+    }, [user?.email, signerStatus.isInitializing, router]);
 
     const connectWallet = async (
         connect: () => Promise<any>,
@@ -110,22 +110,16 @@ export default function Home() {
                         {signerStatus.isInitializing ? (
                             <>Loading...</>
                         ) : user ? (
-                            <div className="flex flex-col text-center items-center gap-2 p-2">
 
-                                {user?.email && (
                                     <div className="flex flex-col items-center gap-2">
-                                        <p className="text-xl font-bold">Authenticated!</p>
-                                        <div className="relative group">
+
                                             <button
-                                                className="px-6 py-2 bg-[#02f994] text-black hover:bg-[#00e085] transition-colors"
-                                                onClick={handleSmartWalletRedirect}
+                                                className="px-6 py-2 bg-[#f93702] text-black hover:bg-[#00e085] transition-colors"
+                                                onClick={() => logout()}
                                             >
-                                                View Smart Wallet Details
+                                                Logout Demo account
                                             </button>
-                                        </div>
                                     </div>
-                                )}
-                            </div>
                         ) : (
                             <button
                                 className="px-6 py-2 bg-[#02f994] text-black   hover:bg-[#00e085] transition-colors"
