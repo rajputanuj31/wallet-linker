@@ -13,6 +13,7 @@ const uiConfig: AlchemyAccountsUIConfig = {
       [{ type: "email" }],
       [
         { type: "social", authProviderId: "google", mode: "popup" },
+        { type: "social", authProviderId: "facebook", mode: "popup" },
       ],
     ],
   },

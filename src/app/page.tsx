@@ -16,6 +16,7 @@ import {
     useSignerStatus,
     useUser,
 } from "@account-kit/react";
+import { useEffect } from 'react';
 
 export default function Home() {
     const router = useRouter();
@@ -25,6 +26,12 @@ export default function Home() {
     const { openAuthModal } = useAuthModal();
     const signerStatus = useSignerStatus();
     const { logout } = useLogout();
+
+    useEffect(() => {
+        if (user?.email && !signerStatus.isInitializing) {
+            router.replace('/smartWallet');
+        }
+    }, [user?.email, signerStatus.isInitializing, router]);
 
     const connectWallet = async (
         connect: () => Promise<any>,
@@ -55,6 +62,10 @@ export default function Home() {
             dispatch(setError('An unexpected error occurred'));
         }
     };
+
+    if (signerStatus.isInitializing || user?.email) {
+        return null;
+    }
 
     return (
         <main className="min-h-screen pt-16 bg-gradient-to-br from-[#1E1E2F] to-[#2D2D3A]">
@@ -94,29 +105,12 @@ export default function Home() {
                             />
                         )}
 
-                        {signerStatus.isInitializing ? (
-                            <>Loading...</>
-                        ) : user && user.email ? (
-                            <div className="flex flex-col text-center items-center gap-2 p-2">
-                                <p className="text-xl font-bold">Success!</p>
-                                <p className="text-white">Logged in as {user.email}.</p>
-                                <p className="text-white">Address: {user.address}.</p>
-
-                                <button
-                                    className="px-6 py-2 bg-red-500 text-white w-48 hover:bg-red-600 transition-colors mt-6"
-                                    onClick={() => logout()}
-                                >
-                                    Log out
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                className="px-6 py-2 bg-[#02f994] text-black hover:bg-[#00e085] transition-colors"
-                                onClick={openAuthModal}
-                            >
-                                Create a Smart Wallet
-                            </button>
-                        )}
+                        <button
+                            className="px-6 py-2 bg-[#02f994] text-black hover:bg-[#00e085] transition-colors"
+                            onClick={openAuthModal}
+                        >
+                            Create a Smart Wallet
+                        </button>
                     </div>
                 </div>
             </div>
