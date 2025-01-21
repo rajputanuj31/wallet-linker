@@ -117,7 +117,7 @@ export default function AccountInfo() {
             case 'metamask': return 'ETH';
             case 'phantom': return 'SOL';
             case 'petra': return 'APT';
-            case 'leap': return 'ATOM';
+            case 'leap': return 'OSMO';
             case 'rabby': return 'ETH';
             default: return '';
         }

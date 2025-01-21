@@ -1,5 +1,6 @@
 import { WalletNotInstalledError, WalletConnectionError } from '../utils/Errors';
 import { SigningStargateClient, StargateClient } from '@cosmjs/stargate';
+import { GasPrice } from '@cosmjs/stargate';
 
 interface WalletInfo {
     address: string;
@@ -23,21 +24,23 @@ const CHAIN_NAMES: { [key: string]: string } = {
     'cosmoshub-4': 'Cosmos Hub',
     'osmosis-1': 'Osmosis',
     'juno-1': 'Juno',
+    'osmo-test-5': 'Osmosis Testnet',
 };
 
 const CHAIN_RPCS: { [key: string]: string } = {
     'cosmoshub-4': 'https://cosmos-rpc.publicnode.com',
     'osmosis-1': 'https://osmosis-rpc.publicnode.com',
     'juno-1': 'https://juno-rpc.publicnode.com',
+    'osmo-test-5': 'https://rpc.testnet.osmosis.zone:443',
 };
 
 const CHAIN_EXPLORERS: { [key: string]: string } = {
     'cosmoshub-4': 'https://www.mintscan.io/cosmos',
-    'osmosis-1': 'https://www.mintscan.io/osmosis',
+    'osmo-test-5': 'https://www.mintscan.io/osmosis-testnet',
     'juno-1': 'https://www.mintscan.io/juno',
 };
 
-export const connectLeap = async (chainId: string = 'cosmoshub-4'): Promise<WalletInfo> => {
+export const connectLeap = async (chainId: string = 'osmo-test-5'): Promise<WalletInfo> => {
     try {
         if (!window.leap) {
             throw new WalletNotInstalledError('Leap wallet is not installed');
@@ -54,10 +57,13 @@ export const connectLeap = async (chainId: string = 'cosmoshub-4'): Promise<Wall
         }
 
         const client = await StargateClient.connect(rpcEndpoint);
-        
+
         const balance = await client.getAllBalances(address);
-        const mainBalance = balance.length > 0 ? 
-            (parseInt(balance[0].amount) / 1_000_000).toFixed(6) : 
+        console.log("All balances:", balance);
+
+        const osmoBalance = balance.find((b) => b.denom === 'uosmo');
+        const mainBalance = osmoBalance ? 
+            (parseInt(osmoBalance.amount) / 1_000_000).toFixed(6) : 
             '0';
 
         return {
@@ -74,14 +80,18 @@ export const connectLeap = async (chainId: string = 'cosmoshub-4'): Promise<Wall
     }
 };
 
-export const sendLeapTransaction = async (
-    recipientAddress: string, 
-    amount: string, 
-    chainId: string = 'cosmoshub-4'
-): Promise<string> => {
+export const sendLeapTransaction = async (recipientAddress: string, amount: string, chainId: string): Promise<string> => {
     try {
         if (!window.leap) {
             throw new WalletNotInstalledError('Leap wallet is not installed');
+        }
+
+        await window.leap.enable(chainId);
+        const offlineSigner = await window.leap.getOfflineSignerAuto(chainId);
+        
+        const accounts = await offlineSigner.getAccounts();
+        if (!accounts || accounts.length === 0) {
+            throw new Error('No accounts found');
         }
 
         const rpcEndpoint = CHAIN_RPCS[chainId];
@@ -89,36 +99,45 @@ export const sendLeapTransaction = async (
             throw new Error('Unsupported chain');
         }
 
-        const offlineSigner = window.leap.getOfflineSignerAuto(chainId);
-        const accounts = await offlineSigner.getAccounts();
-
         const client = await SigningStargateClient.connectWithSigner(
             rpcEndpoint,
             offlineSigner,
+            {
+                gasPrice: GasPrice.fromString('0.025uosmo')
+            }
         );
 
-        const amountInUatom = Math.floor(parseFloat(amount) * 1_000_000);
-        const fee = {
-            amount: [{
-                denom: 'uatom',
-                amount: '5000',
-            }],
-            gas: '200000',
-        };
+        const balance = await client.getBalance(accounts[0].address, 'uosmo');
+        if (!balance || balance.amount === '0') {
+            throw new Error('Account has no funds. Please fund your account first.');
+        }
+
+        const amountInUosmo = Math.floor(parseFloat(amount) * 1_000_000);
+
+        if (BigInt(balance.amount) < BigInt(amountInUosmo) + BigInt(5000)) {
+            throw new Error('Insufficient funds for transaction and gas fees');
+        }
 
         const result = await client.sendTokens(
             accounts[0].address,
             recipientAddress,
             [{
-                denom: 'uatom',
-                amount: amountInUatom.toString(),
+                denom: 'uosmo',
+                amount: amountInUosmo.toString(),
             }],
-            fee,
-            'Sent via Web3 Multi-Wallet'
+            {
+                amount: [{ denom: 'uosmo', amount: '5000' }],
+                gas: '200000',
+            },
+            'Sent via Wallet Linker'
         );
 
         return result.transactionHash;
     } catch (error: any) {
+        console.error('Leap transaction error:', error);
+        if (error.message.includes('does not exist on chain')) {
+            throw new WalletConnectionError('Account not initialized. Please fund your account first.');
+        }
         throw new WalletConnectionError(error.message || 'Failed to send transaction');
     }
 };
