@@ -109,7 +109,7 @@ export default function Home() {
                             className="px-6 py-2 bg-[#02f994] text-black hover:bg-[#00e085] transition-colors"
                             onClick={openAuthModal}
                         >
-                            Create a Smart Wallet
+                            Social Login
                         </button>
                     </div>
                 </div>

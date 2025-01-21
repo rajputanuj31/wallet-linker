@@ -10,6 +10,57 @@ A web application that allows users to connect and manage multiple cryptocurrenc
 - Smart wallet creation and management
 - Real-time transaction status and explorer links
 
+## Integrated Wallets & Actions
+
+### 1. Ethereum Wallets (MetaMask & Rabby)
+- **Network Support**: 
+  - Ethereum Mainnet
+  - Goerli Testnet
+  - Sepolia Testnet
+- **Actions**:
+  ```typescript
+  // Native ETH transfers
+  const sendMetaMaskTransaction = async (recipientAddress: string, amount: string) => {
+  }
+  const sendRabbyTransaction = async (recipientAddress: string, amount: string) => {
+  ```
+
+### 2. Solana Wallet (Phantom)
+- **Network Support**:
+  - Solana Mainnet
+  - Testnet
+  - Devnet
+- **Actions**:
+  ```typescript
+  // Native SOL transfers
+  const sendPhantomTransaction = async (recipientAddress: string, amount: string) => {
+  }
+  ```
+
+### 3. Aptos Wallet (Petra)
+- **Network Support**:
+  - Aptos Mainnet
+  - Testnet
+  - Devnet
+- **Actions**:
+  ```typescript
+  // Native APT transfers
+  const sendPetraTransaction = async (recipientAddress: string, amount: string) => {
+  }
+  ```
+
+### 4. Cosmos Wallet (Leap)
+- **Network Support**:
+  - Cosmos Hub
+  - Osmosis
+  - Testnet
+- **Actions**:
+  ```typescript
+  // Native OSMO transfers
+  const sendLeapTransaction = async (recipientAddress: string, amount: string) => {
+  }
+  ```
+
 ## Tech Stack
 
 ### Core Technologies
