@@ -23,12 +23,6 @@ interface EIP6963ProviderDetail {
     provider: EthereumProvider;
 }
 
-declare global {
-    interface Window {
-        ethereum: any;
-    }
-}
-
 const CHAIN_NAMES: { [key: string]: string } = {
     '0x1': 'Ethereum Mainnet',
     '0x5': 'Goerli Testnet',
@@ -91,11 +85,27 @@ export const connectMetamask = async (): Promise<WalletInfo> => {
 export const sendMetamaskTransaction = async (recipientAddress: string, amount: string): Promise<string> => {
     try {
         if (!window.ethereum) {
-            throw new WalletNotInstalledError('Metamask wallet is not installed.');
+            throw new WalletNotInstalledError('MetaMask wallet is not installed.');
         }
 
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
+        let provider;
+
+        // Check for EIP-6963 providers
+        if (window.ethereum.eip6963ProviderDetails) {
+            const metamaskProvider = window.ethereum.eip6963ProviderDetails.find(
+                (detail: EIP6963ProviderDetail) => detail.info.rdns === 'io.metamask'
+            );
+            provider = metamaskProvider?.provider;
+        } else if (window.ethereum.isMetaMask) {
+            provider = window.ethereum;
+        }
+
+        if (!provider) {
+            throw new WalletNotInstalledError('MetaMask wallet is not installed.');
+        }
+
+        const ethersProvider = new ethers.BrowserProvider(provider);
+        const signer = await ethersProvider.getSigner();
 
         // Convert amount from ETH to Wei
         const amountInWei = ethers.parseEther(amount);

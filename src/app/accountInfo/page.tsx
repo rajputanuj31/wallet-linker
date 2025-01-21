@@ -118,6 +118,7 @@ export default function AccountInfo() {
             case 'phantom': return 'SOL';
             case 'petra': return 'APT';
             case 'leap': return 'ATOM';
+            case 'rabby': return 'ETH';
             default: return '';
         }
     };
