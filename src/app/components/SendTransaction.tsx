@@ -17,16 +17,17 @@ import type { RootState } from '../store/store';
 interface SendTransactionModalProps {
     isOpen: boolean;
     onClose: () => void;
+    walletInfo: any;
     onSuccess: (hash: string, url: string) => Promise<void>;
 }
 
 export default function SendTransactionModal({ 
     isOpen, 
     onClose,
+    walletInfo,
     onSuccess 
 }: SendTransactionModalProps) {
     const dispatch = useDispatch();
-    const walletInfo = useSelector((state: RootState) => state.wallet);
     const [recipientAddress, setRecipientAddress] = useState('');
     const [amount, setAmount] = useState('');
 
