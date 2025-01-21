@@ -7,14 +7,31 @@ const rootReducer = combineReducers({
   wallet: walletReducer,
 });
 
-const persistConfig = {
+// Create a nested persist config for the wallet reducer
+const walletPersistConfig = {
+  key: 'wallet',
+  storage,
+  blacklist: ['error', 'isConnecting', 'transactionError', 'isTransacting'],
+};
+
+// Create a persist config for the root reducer
+const rootPersistConfig = {
   key: 'root',
   version: 1,
   storage,
-  whitelist: ['wallet'], // Only persist wallet state
+  whitelist: ['wallet'],
 };
 
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// First persist the wallet reducer with its config
+const persistedWalletReducer = persistReducer(walletPersistConfig, walletReducer);
+
+// Then create the root reducer with the persisted wallet reducer
+const rootReducerWithPersistedWallet = combineReducers({
+  wallet: persistedWalletReducer,
+});
+
+// Finally persist the root reducer
+const persistedReducer = persistReducer(rootPersistConfig, rootReducerWithPersistedWallet);
 
 export const store = configureStore({
   reducer: persistedReducer,

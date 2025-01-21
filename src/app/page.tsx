@@ -96,10 +96,10 @@ export default function Home() {
 
                         {signerStatus.isInitializing ? (
                             <>Loading...</>
-                        ) : user ? (
+                        ) : user && user.email ? (
                             <div className="flex flex-col text-center items-center gap-2 p-2">
                                 <p className="text-xl font-bold">Success!</p>
-                                <p className="text-white">Logged in as {user.email ?? "anon"}.</p>
+                                <p className="text-white">Logged in as {user.email}.</p>
                                 <p className="text-white">Address: {user.address}.</p>
 
                                 <button

@@ -8,16 +8,6 @@ interface WalletInfo {
     chainName: string;
 }
 
-declare global {
-    interface Window {
-        ethereum: any & {
-            isRabby?: boolean;
-            isMetaMask?: boolean;
-            providers?: any[];
-        };
-    }
-}
-
 const CHAIN_NAMES: { [key: string]: string } = {
     '0x1': 'Ethereum Mainnet',
     '0x5': 'Goerli Testnet',

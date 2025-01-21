@@ -6,6 +6,7 @@ import { sendMetamaskTransaction, getMetamaskExplorerUrl } from '../lib/Metamask
 import { sendPhantomTransaction } from '../lib/Phantom';
 import { sendPetraTransaction, getPetraExplorerUrl } from '../lib/Petra';
 import { sendLeapTransaction, getLeapExplorerUrl } from '../lib/Leap';
+import { sendRabbyTransaction, getRabbyExplorerUrl } from '../lib/Rabby';
 import { 
     setTransactionInfo, 
     setIsTransacting, 
@@ -35,6 +36,7 @@ export default function SendTransactionModal({
             case 'phantom': return 'SOL';
             case 'petra': return 'APT';
             case 'leap': return 'ATOM';
+            case 'rabby': return 'ETH';
             default: return '';
         }
     };
@@ -48,7 +50,8 @@ export default function SendTransactionModal({
                 throw new Error('Please fill in all fields');
             }
 
-            if (walletInfo?.walletType === 'metamask' && !/^0x[a-fA-F0-9]{40}$/.test(recipientAddress)) {
+            if ((walletInfo?.walletType === 'metamask' || walletInfo?.walletType === 'rabby') && 
+                !/^0x[a-fA-F0-9]{40}$/.test(recipientAddress)) {
                 throw new Error('Invalid Ethereum address format');
             }
 
@@ -75,6 +78,10 @@ export default function SendTransactionModal({
                 case 'leap':
                     hash = await sendLeapTransaction(recipientAddress, amount, walletInfo.chainId);
                     url = getLeapExplorerUrl(walletInfo.chainId, hash);
+                    break;
+                case 'rabby':
+                    hash = await sendRabbyTransaction(recipientAddress, amount);
+                    url = getRabbyExplorerUrl(walletInfo.chainId, hash);
                     break;
                 default:
                     throw new Error('Unknown wallet type');
